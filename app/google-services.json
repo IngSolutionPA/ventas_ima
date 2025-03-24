@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "520120831448",
+    "project_id": "ventas-ima",
+    "storage_bucket": "ventas-ima.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:520120831448:android:4cfe0687b4a90e9476b6ad",
+        "android_client_info": {
+          "package_name": "com.example.ventas_ima"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjCK6XZTQJRn3dFLVrBq9nlCYQWw57-4g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

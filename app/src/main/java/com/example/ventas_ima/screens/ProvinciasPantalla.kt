@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,18 +16,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ventas_ima.model.ProvinciaReporte
 import com.example.ventas_ima.viewmodel.ProvinciasViewModel
 import java.time.Instant
 import java.time.ZoneId
 import androidx.compose.foundation.shape.RoundedCornerShape
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProvinciasPantalla(
     viewModel: ProvinciasViewModel = viewModel(),
-    onProvinciaClick: (String) -> Unit
+    onProvinciaClick: (String, String) -> Unit // ✅ Ahora recibe provincia y fecha
 ) {
     val provincias = viewModel.provincias
     val loading = viewModel.loading
@@ -37,28 +36,50 @@ fun ProvinciasPantalla(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
 
+    // 🎨 Fondo blanco en toda la pantalla
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFF1B5C32)
+        color = Color.White
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = "Reportes de ventas",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                ),
+            // ✅ Barra superior verde con título e ícono
+            Surface(
+                color = Color(0xFF1B5C32), // 🎨 Fondo verde de la barra superior
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                textAlign = TextAlign.Center
-            )
+                    .height(80.dp), // Altura de la barra superior
+                shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp) // Bordes redondeados inferiores
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Assessment,
+                        contentDescription = "Reporte",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Reportes de Ventas",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
 
-            // Fecha
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 📆 Selector de Fecha
             TextField(
                 value = viewModel.fecha,
                 onValueChange = {},
@@ -69,7 +90,9 @@ fun ProvinciasPantalla(
                         Icon(Icons.Default.DateRange, contentDescription = "Seleccionar Fecha")
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
                 colors = TextFieldDefaults.colors(
                     disabledIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
@@ -113,18 +136,21 @@ fun ProvinciasPantalla(
 
             if (loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = Color(0xFF1B5C32))
                 }
             } else if (error != null) {
                 Text("Error: $error", color = MaterialTheme.colorScheme.error)
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
                     items(provincias) { reporte ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    onProvinciaClick(reporte.provincia)
+                                    onProvinciaClick(reporte.provincia, viewModel.fecha) // ✅ Pasa la fecha seleccionada
                                 },
                             elevation = CardDefaults.cardElevation(4.dp),
                             shape = RoundedCornerShape(12.dp),

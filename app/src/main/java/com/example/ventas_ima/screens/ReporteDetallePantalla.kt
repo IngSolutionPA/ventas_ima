@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,60 +13,100 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ventas_ima.viewmodel.DetalleViewModel
-import com.example.ventas_ima.model.DetalleReporte
 import java.time.Instant
 import java.time.ZoneId
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReporteDetallePantalla(
     provinciaSeleccionada: String,
+    fechaSeleccionada: String,
+    navController: NavController,
     viewModel: DetalleViewModel = viewModel()
 ) {
     val provincias = listOf(
         "Bocas del Toro", "Coclé", "Colón", "Chiriquí",
-        "Darién", "Herrera", "Los Santos", "Panamá", "Veraguas", "Panama Oeste"
+        "Darién", "Herrera", "Los Santos", "Panamá", "Veraguas", "Panamá Oeste"
     )
 
     var expandedProvincia by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
 
-    // Aplicar zona horaria de Panamá en el calendario
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
 
-    LaunchedEffect(provinciaSeleccionada) {
+    LaunchedEffect(provinciaSeleccionada, fechaSeleccionada) {
         viewModel.provincia = provinciaSeleccionada
+        viewModel.fecha = fechaSeleccionada
         viewModel.cargarDatos()
     }
 
-    val fondoVerde = Color(0xFF1B5C32)
-
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = fondoVerde
+        color = Color.White
     ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // ✅ Barra superior con botón de regreso e ícono de reporte
+            Surface(
+                color = Color(0xFF1B5C32),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp),
+                shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    IconButton(
+                        onClick = { navController.popBackStack() },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Regresar",
+                            tint = Color.White
+                        )
+                    }
 
-            Text(
-                "Reportes de ventas",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                ),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.Assessment,
+                        contentDescription = "Reporte",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "Reportes de Ventas",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Selector de Provincia
+            // 📌 Selector de Provincia
             ExposedDropdownMenuBox(
                 expanded = expandedProvincia,
                 onExpandedChange = { expandedProvincia = !expandedProvincia }
@@ -86,8 +128,6 @@ fun ReporteDetallePantalla(
                         focusedContainerColor = Color(0xFFF1F1F1),
                         unfocusedContainerColor = Color(0xFFF1F1F1)
                     )
-
-
                 )
                 ExposedDropdownMenu(
                     expanded = expandedProvincia,
@@ -108,7 +148,7 @@ fun ReporteDetallePantalla(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Selector de Fecha con calendario
+            // 📆 Muestra la fecha recibida desde la pantalla anterior
             TextField(
                 value = viewModel.fecha,
                 onValueChange = {},
@@ -128,7 +168,6 @@ fun ReporteDetallePantalla(
                     focusedContainerColor = Color(0xFFF1F1F1),
                     unfocusedContainerColor = Color(0xFFF1F1F1)
                 )
-
             )
 
             if (showDatePicker) {
@@ -139,7 +178,7 @@ fun ReporteDetallePantalla(
                             showDatePicker = false
                             datePickerState.selectedDateMillis?.let { millis ->
                                 val correctedDate = Instant.ofEpochMilli(millis)
-                                    .plusMillis(5 * 60 * 60 * 1000) // UTC-5
+                                    .plusMillis(5 * 60 * 60 * 1000)
                                     .atZone(ZoneId.of("UTC"))
                                     .toLocalDate()
                                     .toString()
@@ -162,14 +201,6 @@ fun ReporteDetallePantalla(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "Reportes Generales de: ${viewModel.provincia}",
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             if (viewModel.loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -195,6 +226,8 @@ fun ReporteDetallePantalla(
                         }
                     }
                 }
+
+                // ✅ Cálculo de totales
                 val totalArroz = viewModel.reportes.sumOf {
                     it.total_arroz.replace(",", "").toDoubleOrNull() ?: 0.0
                 }
@@ -204,6 +237,7 @@ fun ReporteDetallePantalla(
                 val totalGeneral = viewModel.reportes.sumOf {
                     it.total.replace(",", "").toDoubleOrNull() ?: 0.0
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Column(
@@ -211,12 +245,10 @@ fun ReporteDetallePantalla(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text("Total en Arroz: B/. ${"%,.2f".format(totalArroz)}", fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Total en productos: B/. ${"%,.2f".format(totalProductos)}", fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Total generado: B/. ${"%,.2f".format(totalGeneral)}", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Total en Arroz: B/. ${"%,.2f".format(totalArroz)}", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Total en Productos: B/. ${"%,.2f".format(totalProductos)}", fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text("Total General: B/. ${"%,.2f".format(totalGeneral)}", fontWeight = FontWeight.Bold, color = Color.Black)
                 }
-
-
             }
         }
     }
