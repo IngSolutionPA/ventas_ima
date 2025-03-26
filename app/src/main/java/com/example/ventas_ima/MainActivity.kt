@@ -1,9 +1,14 @@
 package com.example.ventas_ima
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.SideEffect
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -14,11 +19,29 @@ import com.example.ventas_ima.screens.ReporteDetallePantalla
 import com.example.ventas_ima.screens.SplashScreen
 import com.example.ventas_ima.ui.theme.Ventas_imaTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+        // ✅ Pedir permiso para notificaciones en Android 13+ (API 33 o superior)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        // ✅ Suscribirse al tema "reportes"
+        FirebaseMessaging.getInstance().subscribeToTopic("reportes")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("FCM", "Suscripción a 'reportes' exitosa")
+                } else {
+                    Log.e("FCM", "Error al suscribirse a 'reportes'", task.exception)
+                }
+            }
         setContent {
             Ventas_imaTheme {
                 val systemUiController = rememberSystemUiController()
@@ -66,4 +89,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    // 🔔 Solicitar permiso para notificaciones en Android 13+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                Log.d("FCM", "Permiso de notificaciones concedido ✅")
+            } else {
+                Log.e("FCM", "Permiso de notificaciones denegado ❌")
+            }
+        }
 }

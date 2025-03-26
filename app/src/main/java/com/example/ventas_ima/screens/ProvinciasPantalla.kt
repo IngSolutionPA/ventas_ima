@@ -25,7 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 @Composable
 fun ProvinciasPantalla(
     viewModel: ProvinciasViewModel = viewModel(),
-    onProvinciaClick: (String, String) -> Unit // ✅ Ahora recibe provincia y fecha
+    onProvinciaClick: (String, String) -> Unit
 ) {
     val provincias = viewModel.provincias
     val loading = viewModel.loading
@@ -36,7 +36,11 @@ fun ProvinciasPantalla(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
 
-    // 🎨 Fondo blanco en toda la pantalla
+    // ✅ Cálculo de totales
+    val totalArroz = provincias.sumOf { it.total_arroz.replace(",", "").toDoubleOrNull() ?: 0.0 }
+    val totalProductos = provincias.sumOf { it.total_productos.replace(",", "").toDoubleOrNull() ?: 0.0 }
+    val totalGeneral = totalArroz + totalProductos
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
@@ -44,13 +48,13 @@ fun ProvinciasPantalla(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // ✅ Barra superior verde con título e ícono
+            // ✅ Barra superior
             Surface(
-                color = Color(0xFF1B5C32), // 🎨 Fondo verde de la barra superior
+                color = Color(0xFF1B5C32),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp), // Altura de la barra superior
-                shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp) // Bordes redondeados inferiores
+                    .height(80.dp),
+                shape = RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -111,7 +115,7 @@ fun ProvinciasPantalla(
                             showDatePicker = false
                             datePickerState.selectedDateMillis?.let { millis ->
                                 val correctedDate = Instant.ofEpochMilli(millis)
-                                    .plusMillis(5 * 60 * 60 * 1000) // UTC-5 Panamá
+                                    .plusMillis(5 * 60 * 60 * 1000)
                                     .atZone(ZoneId.of("UTC"))
                                     .toLocalDate()
                                     .toString()
@@ -143,14 +147,16 @@ fun ProvinciasPantalla(
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .weight(1f) // Permite que la lista ocupe el espacio restante
                 ) {
                     items(provincias) { reporte ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    onProvinciaClick(reporte.provincia, viewModel.fecha) // ✅ Pasa la fecha seleccionada
+                                    onProvinciaClick(reporte.provincia, viewModel.fecha)
                                 },
                             elevation = CardDefaults.cardElevation(4.dp),
                             shape = RoundedCornerShape(12.dp),
@@ -180,6 +186,36 @@ fun ProvinciasPantalla(
                             }
                         }
                     }
+                }
+            }
+
+            // 📌 Sección de totales fija en la parte inferior
+            Surface(
+                color = Color(0xFF1B5C32),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Total en Arroz: B/. ${"%,.2f".format(totalArroz)}",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Total en Productos: B/. ${"%,.2f".format(totalProductos)}",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Total General: B/. ${"%,.2f".format(totalGeneral)}",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             }
         }
