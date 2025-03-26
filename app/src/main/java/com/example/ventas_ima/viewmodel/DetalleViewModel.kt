@@ -15,6 +15,7 @@ class DetalleViewModel : ViewModel() {
     var reportes by mutableStateOf<List<DetalleReporte>>(emptyList())
     var provincia by mutableStateOf("Panamá")
     var fecha by mutableStateOf(LocalDate.now().toString())
+    var tipoReporte by mutableStateOf("ambos") // ✅ "1" = Tiendas, "2" = Ferias, "ambos" = Todos
     var loading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
 
@@ -28,18 +29,16 @@ class DetalleViewModel : ViewModel() {
         "Los Santos" to "7",
         "Panamá" to "8",
         "Veraguas" to "9",
-        "Panamá Oeste" to "10",
-
+        "Panamá Oeste" to "10"
     )
-
 
     fun cargarDatos() {
         viewModelScope.launch {
             loading = true
             try {
                 val provinciaId = provinciasMap[provincia] ?: "1"
-                reportes = RetrofitClient.apiService.obtenerReporteProvinciaFecha(provinciaId, fecha)
-                println("Datos cargados: $fecha")
+                reportes = RetrofitClient.apiService.obtenerReporteProvinciaFecha(provinciaId, fecha, tipoReporte)
+                println("Datos cargados: Provincia = $provinciaId, Fecha = $fecha, Tipo = $tipoReporte")
                 error = null
             } catch (e: Exception) {
                 error = e.message
@@ -50,6 +49,11 @@ class DetalleViewModel : ViewModel() {
         }
     }
 
+    // ✅ Función para cambiar el tipo de reporte y recargar los datos
+    fun cambiarTipoReporte(nuevoTipo: String) {
+        tipoReporte = nuevoTipo
+        cargarDatos()
+    }
 
     init {
         cargarDatos()

@@ -13,11 +13,15 @@ interface ApiService {
     @GET("resumen_provincia_fecha.php")
     suspend fun obtenerReporteProvinciaFecha(
         @Query("provincia") provincia: String,
-        @Query("fecha") fecha: String
+        @Query("fecha") fecha: String,
+        @Query("tipo") tipo: String
     ): List<DetalleReporte>
 
     @GET("resumen_provincias.php")
-    suspend fun obtenerTotalesProvinciasPorFecha(@Query("fecha") fecha: String): List<ProvinciaReporte>
+    suspend fun obtenerTotalesProvinciasPorFecha(
+        @Query("fecha") fecha: String,
+        @Query("tipo") tipo: String // ✅ Se agrega el nuevo parámetro
+    ): List<ProvinciaReporte>
 
 
 }

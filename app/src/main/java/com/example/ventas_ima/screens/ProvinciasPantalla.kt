@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
@@ -31,16 +32,16 @@ fun ProvinciasPantalla(
     val loading = viewModel.loading
     val error = viewModel.error
     var showDatePicker by remember { mutableStateOf(false) }
+    var selectedTipo by remember { mutableStateOf(viewModel.tipoReporte) }
 
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
 
-    // ✅ Cálculo de totales
     val totalArroz = provincias.sumOf { it.total_arroz.replace(",", "").toDoubleOrNull() ?: 0.0 }
     val totalProductos = provincias.sumOf { it.total_productos.replace(",", "").toDoubleOrNull() ?: 0.0 }
     val totalGeneral = totalArroz + totalProductos
-
+    val customGreen = Color(0xFFF5E430)
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
@@ -48,7 +49,7 @@ fun ProvinciasPantalla(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // ✅ Barra superior
+            // ✅ **Encabezado verde con título "Reportes de Ventas"**
             Surface(
                 color = Color(0xFF1B5C32),
                 modifier = Modifier
@@ -83,7 +84,7 @@ fun ProvinciasPantalla(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 📆 Selector de Fecha
+            // 📆 **Filtro de Fecha**
             TextField(
                 value = viewModel.fecha,
                 onValueChange = {},
@@ -138,6 +139,56 @@ fun ProvinciasPantalla(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ✅ **Botones de selección de Tienda, Feria y Ambos**
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Button(
+                    onClick = {
+                        selectedTipo = "tienda"
+                        viewModel.cambiarTipoReporte("1")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTipo == "tienda") customGreen else Color.LightGray
+                    )
+                ) {
+                    Icon(imageVector = Icons.Filled.Store, contentDescription = "1", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Tiendas")
+                }
+
+                Button(
+                    onClick = {
+                        selectedTipo = "feria"
+                        viewModel.cambiarTipoReporte("2")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTipo == "feria") customGreen else Color.LightGray
+                    )
+                ) {
+                    Icon(imageVector = Icons.Filled.ShoppingCart, contentDescription = "Feria", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Ferias")
+                }
+
+                Button(
+                    onClick = {
+                        selectedTipo = "ambos"
+                        viewModel.cambiarTipoReporte("ambos")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTipo == "ambos") customGreen else Color.LightGray
+                    )
+                ) {
+                    Icon(imageVector = Icons.Filled.List, contentDescription = "Ambos", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Ambos")
+                }
+            }
+
             if (loading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Color(0xFF1B5C32))
@@ -189,7 +240,7 @@ fun ProvinciasPantalla(
                 }
             }
 
-            // 📌 Sección de totales fija en la parte inferior
+            // 📌 **Sección de totales fija en la parte inferior**
             Surface(
                 color = Color(0xFF1B5C32),
                 modifier = Modifier
@@ -201,21 +252,9 @@ fun ProvinciasPantalla(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "Total en Arroz: B/. ${"%,.2f".format(totalArroz)}",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Total en Productos: B/. ${"%,.2f".format(totalProductos)}",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Total General: B/. ${"%,.2f".format(totalGeneral)}",
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    Text("Total en Arroz: B/. ${"%,.2f".format(totalArroz)}", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Total en Productos: B/. ${"%,.2f".format(totalProductos)}", fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Total General: B/. ${"%,.2f".format(totalGeneral)}", fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
         }

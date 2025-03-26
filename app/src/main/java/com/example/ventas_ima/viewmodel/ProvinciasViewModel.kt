@@ -17,8 +17,8 @@ class ProvinciasViewModel : ViewModel() {
     var loading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
 
-    // Nueva propiedad para la fecha seleccionada
     var fecha by mutableStateOf(LocalDate.now().toString())
+    var tipoReporte by mutableStateOf("ambos") // "tienda", "feria" o "ambos"
 
     init {
         cargarProvincias()
@@ -28,8 +28,7 @@ class ProvinciasViewModel : ViewModel() {
         viewModelScope.launch {
             loading = true
             try {
-                // Ahora la llamada usa la fecha seleccionada
-                provincias = RetrofitClient.apiService.obtenerTotalesProvinciasPorFecha(fecha)
+                provincias = RetrofitClient.apiService.obtenerTotalesProvinciasPorFecha(fecha, tipoReporte)
                 error = null
             } catch (e: Exception) {
                 error = e.message
@@ -38,4 +37,11 @@ class ProvinciasViewModel : ViewModel() {
             }
         }
     }
+
+    fun cambiarTipoReporte(nuevoTipo: String) {
+        tipoReporte = nuevoTipo
+        cargarProvincias()
+    }
+
+
 }

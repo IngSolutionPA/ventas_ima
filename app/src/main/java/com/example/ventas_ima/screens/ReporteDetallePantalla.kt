@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.CloudDownload
@@ -39,12 +40,30 @@ fun ReporteDetallePantalla(
         "Bocas del Toro", "Coclé", "Colón", "Chiriquí",
         "Darién", "Herrera", "Los Santos", "Panamá", "Veraguas", "Panamá Oeste"
     )
-
+    fun obtenerIdProvincia(nombreProvincia: String): Int {
+        val provinciasMap = mapOf(
+            "Bocas del Toro" to 1,
+            "Coclé" to 2,
+            "Colón" to 3,
+            "Chiriquí" to 4,
+            "Darién" to 5,
+            "Herrera" to 6,
+            "Los Santos" to 7,
+            "Panamá" to 8,
+            "Veraguas" to 9,
+            "Panamá Oeste" to 10
+        )
+        return provinciasMap[nombreProvincia] ?: 0
+    }
+    var selectedTipo by remember { mutableStateOf(viewModel.tipoReporte) }
     var expandedProvincia by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = System.currentTimeMillis()
     )
+
+    val customGreen = Color(0xFFFFEE37)  // Verde oscuro para botones seleccionados
+    //val customYellow = Color(0xFFFFEE37) // Amarillo para los totales
 
     LaunchedEffect(provinciaSeleccionada, fechaSeleccionada) {
         viewModel.provincia = provinciaSeleccionada
@@ -57,14 +76,9 @@ fun ReporteDetallePantalla(
     val totalProductos = viewModel.reportes.sumOf { it.total_productos.replace(",", "").toDoubleOrNull() ?: 0.0 }
     val totalGeneral = totalArroz + totalProductos
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // ✅ Barra superior
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.White) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // ✅ **Encabezado**
             Surface(
                 color = Color(0xFF1B5C32),
                 modifier = Modifier.fillMaxWidth().height(80.dp),
@@ -75,25 +89,19 @@ fun ReporteDetallePantalla(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.size(36.dp)
-                    ) {
+                    IconButton(onClick = { navController.popBackStack() }, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Regresar", tint = Color.White)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(Icons.Default.Assessment, contentDescription = "Reporte", tint = Color.White, modifier = Modifier.size(28.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Reportes de Ventas",
-                        style = MaterialTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold)
-                    )
+                    Text("Detalle de Reportes", style = MaterialTheme.typography.headlineSmall.copy(color = Color.White, fontWeight = FontWeight.Bold))
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 📌 Selector de Provincia
+            // 📌 **Selector de Provincia**
             ExposedDropdownMenuBox(
                 expanded = expandedProvincia,
                 onExpandedChange = { expandedProvincia = !expandedProvincia }
@@ -133,7 +141,7 @@ fun ReporteDetallePantalla(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 📆 Selector de Fecha
+            // 📆 **Selector de Fecha**
             TextField(
                 value = viewModel.fecha,
                 onValueChange = {},
@@ -181,16 +189,41 @@ fun ReporteDetallePantalla(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 📌 Lista de reportes con scroll
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .weight(1f) // Permite que la lista ocupe el espacio restante
-            ) {
+            // ✅ **Botones de selección de Tienda, Feria y Ambos estilizados**
+            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Button(
+                    onClick = { selectedTipo = "1"; viewModel.cambiarTipoReporte("1") },
+                    colors = ButtonDefaults.buttonColors(containerColor = if (selectedTipo == "1") customGreen else Color.LightGray)
+                ) {
+                    Icon(imageVector = Icons.Filled.Storefront, contentDescription = "Tienda", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Tiendas")
+                }
+
+                Button(
+                    onClick = { selectedTipo = "2"; viewModel.cambiarTipoReporte("2") },
+                    colors = ButtonDefaults.buttonColors(containerColor = if (selectedTipo == "2") customGreen else Color.LightGray)
+                ) {
+                    Icon(imageVector = Icons.Filled.ShoppingCart, contentDescription = "Feria", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Ferias")
+                }
+
+                Button(
+                    onClick = { selectedTipo = "ambos"; viewModel.cambiarTipoReporte("ambos") },
+                    colors = ButtonDefaults.buttonColors(containerColor = if (selectedTipo == "ambos") customGreen else Color.LightGray)
+                ) {
+                    Icon(imageVector = Icons.Filled.List, contentDescription = "Ambos", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Ambos")
+                }
+            }
+
+            // 📌 **Lista de reportes con Card y botón de descarga**
+            LazyColumn(modifier = Modifier.padding(horizontal = 16.dp).weight(1f)) {
                 items(viewModel.reportes) { item ->
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                         elevation = CardDefaults.cardElevation(4.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
@@ -209,7 +242,8 @@ fun ReporteDetallePantalla(
                                 onClick = {
                                     val downloadUrl = "https://reportes.imakotlin.com/descargar_reporte.php" +
                                             "?id_reporte=${item.id_reporte}" +
-                                            "&id_anio=${viewModel.fecha.substring(0, 4)}"
+                                            "&id_anio=${viewModel.fecha.substring(0, 4)}" +
+                                            "&id_provincia=${obtenerIdProvincia(viewModel.provincia)}"
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
                                     context.startActivity(intent)
                                 }
@@ -221,16 +255,13 @@ fun ReporteDetallePantalla(
                 }
             }
 
-            // 📌 Sección de totales fija en la parte inferior
+            // 📌 **Sección de Totales**
             Surface(
                 color = Color(0xFF1B5C32),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Total en Arroz: B/. ${"%,.2f".format(totalArroz)}", fontWeight = FontWeight.Bold, color = Color.White)
                     Text("Total en Productos: B/. ${"%,.2f".format(totalProductos)}", fontWeight = FontWeight.Bold, color = Color.White)
                     Text("Total General: B/. ${"%,.2f".format(totalGeneral)}", fontWeight = FontWeight.Bold, color = Color.White)
