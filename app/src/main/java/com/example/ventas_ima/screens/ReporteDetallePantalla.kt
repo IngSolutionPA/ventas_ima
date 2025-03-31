@@ -240,10 +240,8 @@ fun ReporteDetallePantalla(
                             // 📥 Botón de descarga
                             IconButton(
                                 onClick = {
-                                    val downloadUrl = "https://reportes.imakotlin.com/descargar_reporte.php" +
-                                            "?id_reporte=${item.id_reporte}" +
-                                            "&id_anio=${viewModel.fecha.substring(0, 4)}" +
-                                            "&id_provincia=${obtenerIdProvincia(viewModel.provincia)}"
+                                    val downloadUrl = "https://reportes.imakotlin.com/" +
+                                            "${item.ruta_archivo}"
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl))
                                     context.startActivity(intent)
                                 }
